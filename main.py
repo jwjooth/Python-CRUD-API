@@ -1,11 +1,23 @@
 from fastapi import FastAPI
 
-app = FastAPI(title="Product CRUD API", version="1.0.0")
+from controller.CategoryController import router as category_router
+from database import Base, engine
+
+app = FastAPI(
+    title="Products API",
+    version="1.0.0",
+    description="CRUD API for managing categories in the products database.",
+)
+
+try:
+    Base.metadata.create_all(bind=engine)
+except Exception:
+    pass
+
 
 @app.get("/")
 def read_root():
-    return{"message":"welcome to fastapi product crud api"}
+    return {"message": "Welcome to the Products API"}
 
-@app.get("/products")
-def get_all():
-    return {"message":"success get all data", "data":"iPhone cook dih"}
+
+app.include_router(category_router)
