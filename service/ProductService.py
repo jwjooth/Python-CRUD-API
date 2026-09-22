@@ -4,7 +4,7 @@ from payload.ProductPayload import ProductRequest
 from repository.ProductRepository import ProductRepository
 
 
-class CategoryService:
+class ProductService:
     def __init__(self, db):
         self.repository = ProductRepository(db)
 
