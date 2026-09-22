@@ -5,7 +5,7 @@ from database import get_db
 from payload.ProductPayload import ProductResponse, ProductRequest
 from service.ProductService import ProductService
 
-router = APIRouter(prefix="api/v1/products", tags=["products"])
+router = APIRouter(prefix="/api/v1/products", tags=["products"])
 
 
 @router.get("", response_model=list[ProductResponse])

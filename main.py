@@ -1,6 +1,7 @@
 from fastapi import FastAPI
 
 from controller.CategoryController import router as category_router
+from controller.ProductController import router as product_router
 from database import Base, engine
 
 app = FastAPI(
@@ -21,3 +22,4 @@ def read_root():
 
 
 app.include_router(category_router)
+app.include_router(product_router)
