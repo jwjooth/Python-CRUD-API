@@ -27,7 +27,7 @@ def get_by_id(
     return service.get_by_id(id)
 
 
-@router.post("", response_model=ProductResponse)
+@router.post("", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
 def create(
         request: ProductRequest,
         db: Session = Depends(get_db)

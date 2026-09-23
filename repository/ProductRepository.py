@@ -23,7 +23,9 @@ class ProductRepository:
         return self.db.execute(query).scalar_one_or_none()
 
     def create(self, request: ProductRequest):
-        product = Product(**request.model_dump())
+        data = request.model_dump()
+        data["name"] = data["name"].strip()
+        product = Product(**data)
         self.db.add(product)
         self.db.commit()
         self.db.refresh(product)
@@ -33,7 +35,7 @@ class ProductRepository:
         product = self.get_by_id(id)
         if product is None:
             return None
-        product.name = request.model_dump()["name"]
+        product.name = request.name.strip()
         product.description = request.model_dump()["description"]
         product.price = request.model_dump()["price"]
         product.stock = request.model_dump()["stock"]
