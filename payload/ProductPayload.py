@@ -1,11 +1,11 @@
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field
 from datetime import datetime
 from decimal import Decimal
 
 class ProductRequest(BaseModel):
     name: str
     description: str
-    price: Decimal
+    price: Decimal = Field(..., decimal_places=2)
     stock: int
 
 

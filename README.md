@@ -80,6 +80,10 @@ pip install -r requirements.txt
 Copy `.env.example` to `.env` and fill in your database credentials:
 
 ```bash
+# Windows Command Prompt
+copy .env.example .env
+
+# Linux / macOS
 cp .env.example .env
 ```
 
