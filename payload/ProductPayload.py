@@ -5,7 +5,7 @@ from decimal import Decimal
 class ProductRequest(BaseModel):
     name: str
     description: str
-    price: Decimal = Field(..., decimal_places=2)
+    price: Decimal = Field(..., max_digits=10, decimal_places=2)
     stock: int
 
 
