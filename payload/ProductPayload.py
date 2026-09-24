@@ -8,7 +8,6 @@ class ProductRequest(BaseModel):
     price: Decimal = Field(..., max_digits=10, decimal_places=2)
     stock: int
 
-
 class ProductResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
     id: int
