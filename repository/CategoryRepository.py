@@ -1,21 +1,20 @@
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
-
 from entity.CategoryEntity import Category
 
-
 class CategoryRepository:
+
     def __init__(self, db: Session):
         self.db = db
 
-    def get_all(self, skip: int = 0, limit: int = 100):
+    def get_all(self, skip: int=0, limit: int=100):
         statement = select(Category).order_by(Category.id).offset(skip).limit(limit)
         return self.db.execute(statement).scalars().all()
 
     def get_by_id(self, category_id: int):
         return self.db.get(Category, category_id)
 
-    def get_by_name(self, name: str, exclude_id: int | None = None):
+    def get_by_name(self, name: str, exclude_id: int | None=None):
         statement = select(Category).where(func.lower(Category.name) == name.lower())
         if exclude_id is not None:
             statement = statement.where(Category.id != exclude_id)
@@ -32,7 +31,6 @@ class CategoryRepository:
         category = self.get_by_id(category_id)
         if category is None:
             return None
-
         category.name = name
         self.db.commit()
         self.db.refresh(category)
@@ -42,7 +40,6 @@ class CategoryRepository:
         category = self.get_by_id(category_id)
         if category is None:
             return False
-
         self.db.delete(category)
         self.db.commit()
         return True
