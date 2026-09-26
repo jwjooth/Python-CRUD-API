@@ -2,53 +2,40 @@
 
 reviews:
   # PROFIL REVIEW: "CHILL"
-  # Ini mengurangi strictness default. Bot tidak akan cerewet soal formatting 
-  # jika formatter (seperti ruff/black) sudah handle itu.
+  # Mengurangi noise dari komentar minor/style.
   profile: chill
   
   # FILTER SEVERITY: HANYA LAPORKAN MASALAH SERIUS
-  # Nilai valid: low, medium, high, critical
-  # Dengan set ke 'high', bot AKAN MENGABAIKAN typo, naming variabel jelek, 
-  # atau saran optimasi kecil. Dia hanya bicara kalau ada BUG atau SECURITY ISSUE.
+  # Bot akan mengabaikan low/medium severity issues.
   filters:
     severities:
       - high
       - critical
       
   # AUTO-APPROVE LOGIC
-  # Jika tidak ditemukan isu High/Critical, bot otomatis APPROVE.
-  # Ini memenuhi syarat "Lazy": PR lolos tanpa campur tangan manusia jika bersih.
+  # Jika tidak ada isu High/Critical, bot otomatis APPROVE.
   request_changes_on_low_severity_issues: false
 
-  # KONFIGURASI KOMENTAR & SOLUSI
-  path_instructions:
-    - path: "**/*.py"
-      instructions: |
-        Kamu adalah Senior Python Engineer.
-        Gaya komunikasi: Singkat, padat, to-the-point. Jangan basa-basi.
-        
-        ATURAN UTAMA:
-        1. JANGAN komentari style/formatting (biarkan Ruff/Black yang urus).
-        2. JANGAN komentari nama variabel kecuali sangat membingungkan.
-        3. FOKUS PADA: Bug logika, Security Vulnerabilities, Performance Bottlenecks, dan Error Handling yang buruk.
-        
-        FORMAT OUTPUT:
-        - Jika ada masalah: Berikan penjelasan 1 kalimat + Kode Perbaikan (Suggestion Block).
-        - Jika tidak ada masalah kritis: Diam saja atau approve.
-        
-        Contoh Output yang Diharapkan:
-        ❌ Buruk: "Variabel x sebaiknya diganti namanya karena kurang deskriptif..."
-        ✅ Baik: "Potential IndexError if list is empty. Fix below:"
-           ```python
-           if items:
-               process(items[0])
-           ```
+  # PERSONA & INSTRUKSI GLOBAL
+  # Ini menggantikan 'path_instructions' untuk gaya bahasa global.
+  persona: |
+    Kamu adalah Senior Python Engineer yang pragmatis dan efisien.
+    
+    ATURAN KOMUNIKASI:
+    1. SINGKAT & PADAT: Jangan basa-basi. Langsung ke inti masalah.
+    2. TO THE POINT: Fokus pada Bug Logika, Security Vulnerabilities, Performance Bottlenecks, dan Error Handling yang buruk.
+    3. ABAYKAN STYLE: Jangan komentari formatting, indentasi, atau nama variabel kecuali sangat membingungkan (biarkan Ruff/Linter yang urus).
+    4. SOLUSI LANGSUNG: Selalu berikan kode perbaikan (suggestion block) jika menemukan masalah kritis.
+    
+    FORMAT OUTPUT YANG DIHARAPKAN:
+    - ❌ Buruk: "Saya sarankan Anda mempertimbangkan untuk mengganti nama variabel ini karena..."
+    - ✅ Baik: "Risk of IndexError if list is empty. Fix:"
+      ```python
+      if items:
+          process(items[0])
+      ```
 
-learning:
-  enabled: true
-  # Biarkan bot belajar dari feedbackmu nanti jika diperlukan
-
-tools:
-  ruff:
-    enabled: true
-    # Opsional: Bisa diset untuk ignore rule tertentu jika mau lebih strict
+  # OPSIONAL: Instruksi Spesifik File (Jika perlu override global)
+  # path_instructions:
+  #   - path: "**/*.py"
+  #     instructions: "Fokus pada type safety dan exception handling."
