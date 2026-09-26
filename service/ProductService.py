@@ -20,15 +20,6 @@ class ProductService:
             )
         return product
 
-    def get_by_name(self, name: str, exclude_id: int):
-        product = self.repository.get_by_name(name, exclude_id)
-        if product is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Product with name {name} was not found.",
-            )
-        return product
-
     def create(self, request: ProductRequest):
         if not request.name.strip():
             raise HTTPException(

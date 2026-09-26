@@ -5,10 +5,12 @@ from pydantic import BaseModel, ConfigDict, Field
 
 
 class ProductRequest(BaseModel):
-    name: str
-    description: str
-    price: Decimal = Field(..., max_digits=10, decimal_places=2)
-    stock: int
+    name: str = Field(..., min_length=1, max_length=255)
+    description: str | None = Field(default=None)
+    price: Decimal = Field(..., gt=0, max_digits=10, decimal_places=2)
+    stock: int = Field(..., ge=0)
+
+    model_config = ConfigDict(str_strip_whitespace=True)
 
 
 class ProductResponse(BaseModel):

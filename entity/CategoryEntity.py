@@ -1,6 +1,6 @@
 from datetime import datetime
 
-from sqlalchemy import DateTime, String, func
+from sqlalchemy import DateTime, Index, String, func
 from sqlalchemy.orm import Mapped, mapped_column
 
 from database import Base
@@ -19,3 +19,4 @@ class Category(Base):
         server_default=func.current_timestamp(),
         onupdate=func.current_timestamp(),
     )
+    __table_args__ = (Index("uq_category_name_normalized", func.lower(name), unique=True),)

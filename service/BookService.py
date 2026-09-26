@@ -1,8 +1,7 @@
-from fastapi import status
+from fastapi import HTTPException, status
 from sqlalchemy.orm import Session
 
-from helper.exception import helperException
-from payload.BookPayload import BookRequest, BookResponse
+from payload.BookPayload import BookRequest
 from repository.BookRepository import BookRepository
 
 
@@ -10,94 +9,45 @@ class BookService:
     def __init__(self, db: Session):
         self.repository = BookRepository(db)
 
-    def get_all(self) -> list[BookResponse]:
-        return self.repository.get_all()
+    def get_all(self, offset: int = 0, limit: int = 100):
+        return self.repository.get_all(offset, limit)
 
-    def get_by_id(self, id: int) -> BookResponse:
-        book = self.repository.get_by_id(id)
+    def get_by_id(self, book_id: int):
+        book = self.repository.get_by_id(book_id)
         if book is None:
-            helperException(
-                status.HTTP_404_NOT_FOUND,
-                f"Book with id {id} was not found.",
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Book with id {book_id} was not found.",
             )
+        return book
 
-    def get_by_title(self, title: str, exclude_id: int | None = None) -> BookResponse:
-        book = self.repository.get_by_title(title, exclude_id)
-        if book is None:
-            helperException(
-                status.HTTP_404_NOT_FOUND,
-                f"Book with title {title} was not found.",
-            )
-
-    def create(self, request: BookRequest) -> BookResponse:
-        if request.title is None or not request.title.strip():
-            helperException(
-                status.HTTP_404_NOT_FOUND,
-                "Book title is required.",
-            )
-        if request.author is None or not request.author.strip():
-            helperException(
-                status.HTTP_404_NOT_FOUND,
-                "Book author is required.",
-            )
-        if request.stock is None or request.stock <= 0:
-            helperException(
-                status.HTTP_404_NOT_FOUND,
-                "Book stock is required and must be greater than zero.",
-            )
-        if request.price is None or request.price <= 0:
-            helperException(
-                status.HTTP_404_NOT_FOUND,
-                "Book price is required and must be greater than zero",
-            )
-        if request.category_id is None or request.category_id <= 0:
-            helperException(
-                status.HTTP_404_NOT_FOUND,
-                "Book category_id is required and must be greater than zero",
+    def create(self, request: BookRequest):
+        if self.repository.get_by_title(request.title.strip()):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Book with title {request.title.strip()} already exists.",
             )
         return self.repository.create(request)
 
-    def update(self, id: int, request: BookRequest) -> BookResponse:
-        self.get_by_id(id)
-        if request.title is None or not request.title.strip():
-            helperException(
-                status.HTTP_404_NOT_FOUND,
-                "Book title is required.",
+    def update(self, book_id: int, request: BookRequest):
+        self.get_by_id(book_id)
+        if self.repository.get_by_title(request.title.strip(), exclude_id=book_id):
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Book with title {request.title.strip()} already exists.",
             )
-        if request.author is None or not request.author.strip():
-            helperException(
-                status.HTTP_404_NOT_FOUND,
-                "Book author is required.",
-            )
-        if request.stock is None or request.stock <= 0:
-            helperException(
-                status.HTTP_404_NOT_FOUND,
-                "Book stock is required and must be greater than zero.",
-            )
-        if request.price is None or request.price <= 0:
-            helperException(
-                status.HTTP_404_NOT_FOUND,
-                "Book price is required and must be greater than zero",
-            )
-        if request.category_id is None or request.category_id <= 0:
-            helperException(
-                status.HTTP_404_NOT_FOUND,
-                "Book category_id is required and must be greater than zero",
-            )
-
-        book = self.repository.update(id, request)
+        book = self.repository.update(book_id, request)
         if book is None:
-            helperException(
-                status.HTTP_404_NOT_FOUND,
-                f"Book with id {id} was not found.",
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Book with id {book_id} was not found.",
             )
-
         return book
 
-    def delete(self, id: int):
-        deleted = self.repository.delete(id)
+    def delete(self, book_id: int):
+        deleted = self.repository.delete(book_id)
         if not deleted:
-            helperException(
-                status.HTTP_404_NOT_FOUND,
-                f"Book with id {id} was not found.",
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Book with id {book_id} was not found.",
             )

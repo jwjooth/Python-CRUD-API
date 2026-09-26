@@ -23,6 +23,4 @@ class Product(Base):
         server_default=func.current_timestamp(),
         onupdate=func.current_timestamp(),
     )
-    __table_args__ = (
-        Index("uq_product_name_normalized", func.lower(name), unique=True),
-    )
+    __table_args__ = (Index("uq_product_name_normalized", func.lower(name), unique=True),)

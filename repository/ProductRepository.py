@@ -35,10 +35,11 @@ class ProductRepository:
         product = self.get_by_id(id)
         if product is None:
             return None
+        data = request.model_dump()
         product.name = request.name.strip()
-        product.description = request.model_dump()["description"]
-        product.price = request.model_dump()["price"]
-        product.stock = request.model_dump()["stock"]
+        product.description = data["description"]
+        product.price = data["price"]
+        product.stock = data["stock"]
         self.db.commit()
         self.db.refresh(product)
         return product

@@ -8,8 +8,8 @@ class CategoryRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_all(self, skip: int = 0, limit: int = 100):
-        statement = select(Category).order_by(Category.id).offset(skip).limit(limit)
+    def get_all(self, offset: int = 0, limit: int = 100):
+        statement = select(Category).order_by(Category.id).offset(offset).limit(limit)
         return self.db.execute(statement).scalars().all()
 
     def get_by_id(self, category_id: int):
