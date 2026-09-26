@@ -106,7 +106,28 @@ CREATE DATABASE products_db;
 
 The database name must match `DB_NAME` in your `.env` file.
 
-### 4. Run the Application
+### 4. Upgrade an Existing Database
+
+For an existing `categories` table, back up the database and stop all application
+writers before running this migration with the configured database credentials:
+
+```bash
+python -m migrations.category_name_unique
+```
+
+The migration merges category names that compare equal under the database's
+`lower(name)` expression and collation. It keeps the lowest category ID and its
+name, moves all books from duplicate categories to that ID, then deletes the
+duplicate category rows and creates `uq_category_name_normalized`. References
+to removed category IDs outside this database must be updated separately.
+It can be rerun safely; an existing index makes it a no-op. MySQL index creation
+implicitly commits, so keep writers stopped until the command succeeds. If index
+creation fails after merging duplicates, fix the reported error and rerun.
+
+Fresh databases receive the index when the application creates its tables.
+`Base.metadata.create_all()` does not upgrade existing tables.
+
+### 5. Run the Application
 
 Start the development server with hot-reload:
 
