@@ -41,10 +41,10 @@ class ProductService:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Product stock is required.",
             )
-        if request.stock <= 0:
+        if request.stock < 0:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Product stock is must be greater than zero.",
+                detail="Product stock must be zero or greater.",
             )
         if self.repository.get_by_name(request.name.strip()):
             raise HTTPException(
@@ -75,10 +75,10 @@ class ProductService:
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Product stock is required.",
             )
-        if request.stock <= 0:
+        if request.stock < 0:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Product stock is must be greater than zero.",
+                detail="Product stock must be zero or greater.",
             )
         if self.repository.get_by_name(request.name.strip(), id):
             raise HTTPException(

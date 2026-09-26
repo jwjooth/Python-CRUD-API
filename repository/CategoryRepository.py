@@ -1,4 +1,10 @@
+import re
+import sqlite3
+
+from fastapi import HTTPException, status
+from pymysql.err import IntegrityError as MySQLIntegrityError
 from sqlalchemy import func, select
+from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from entity.CategoryEntity import Category
@@ -24,7 +30,7 @@ class CategoryRepository:
     def create(self, name: str):
         category = Category(name=name)
         self.db.add(category)
-        self.db.commit()
+        self._commit_name_change()
         self.db.refresh(category)
         return category
 
@@ -33,7 +39,7 @@ class CategoryRepository:
         if category is None:
             return None
         category.name = name
-        self.db.commit()
+        self._commit_name_change()
         self.db.refresh(category)
         return category
 
@@ -44,3 +50,27 @@ class CategoryRepository:
         self.db.delete(category)
         self.db.commit()
         return True
+
+    def _commit_name_change(self):
+        try:
+            self.db.commit()
+        except IntegrityError as exc:
+            original = exc.orig
+            sqlite_conflict = isinstance(original, sqlite3.IntegrityError) and str(original) == (
+                "UNIQUE constraint failed: index 'uq_category_name_normalized'"
+            )
+            mysql_conflict = (
+                isinstance(original, MySQLIntegrityError)
+                and original.args[0] == 1062
+                and re.search(
+                    r"for key ['`](?:[^'`]+\.)?uq_category_name_normalized['`]$",
+                    str(original.args[1]),
+                )
+            )
+            if not (sqlite_conflict or mysql_conflict):
+                raise
+            self.db.rollback()
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail="Category name already exists.",
+            ) from exc
