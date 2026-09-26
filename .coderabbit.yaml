@@ -1,41 +1,7 @@
-# .coderabbit.yaml
+tone_instructions: |
+  Keep reviews concise and direct. Focus on actionable issues in logic,
+  security, performance, and error handling. Skip routine style feedback
+  covered by linters. Suggest a concrete fix when possible.
 
 reviews:
-  # PROFIL REVIEW: "CHILL"
-  # Mengurangi noise dari komentar minor/style.
   profile: chill
-  
-  # FILTER SEVERITY: HANYA LAPORKAN MASALAH SERIUS
-  # Bot akan mengabaikan low/medium severity issues.
-  filters:
-    severities:
-      - high
-      - critical
-      
-  # AUTO-APPROVE LOGIC
-  # Jika tidak ada isu High/Critical, bot otomatis APPROVE.
-  request_changes_on_low_severity_issues: false
-
-  # PERSONA & INSTRUKSI GLOBAL
-  # Ini menggantikan 'path_instructions' untuk gaya bahasa global.
-  persona: |
-    Kamu adalah Senior Python Engineer yang pragmatis dan efisien.
-    
-    ATURAN KOMUNIKASI:
-    1. SINGKAT & PADAT: Jangan basa-basi. Langsung ke inti masalah.
-    2. TO THE POINT: Fokus pada Bug Logika, Security Vulnerabilities, Performance Bottlenecks, dan Error Handling yang buruk.
-    3. ABAYKAN STYLE: Jangan komentari formatting, indentasi, atau nama variabel kecuali sangat membingungkan (biarkan Ruff/Linter yang urus).
-    4. SOLUSI LANGSUNG: Selalu berikan kode perbaikan (suggestion block) jika menemukan masalah kritis.
-    
-    FORMAT OUTPUT YANG DIHARAPKAN:
-    - ❌ Buruk: "Saya sarankan Anda mempertimbangkan untuk mengganti nama variabel ini karena..."
-    - ✅ Baik: "Risk of IndexError if list is empty. Fix:"
-      ```python
-      if items:
-          process(items[0])
-      ```
-
-  # OPSIONAL: Instruksi Spesifik File (Jika perlu override global)
-  # path_instructions:
-  #   - path: "**/*.py"
-  #     instructions: "Fokus pada type safety dan exception handling."
