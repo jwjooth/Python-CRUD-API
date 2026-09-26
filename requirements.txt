@@ -4,3 +4,8 @@ sqlalchemy==2.0.54
 pymysql==1.2.3
 pydantic-settings==2.15.0
 python-dotenv==1.2.3
+iniconfig==2.3.0
+packaging==26.3
+pluggy==1.6.0
+pygments==2.21.0
+pytest==9.1.1
