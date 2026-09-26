@@ -1,6 +1,6 @@
 # Python RESTful API
 
-A clean, modular, and layered RESTful API built with **FastAPI**, **SQLAlchemy**, and **MySQL** for managing products and categories.
+A clean, modular, and layered RESTful API built with **FastAPI**, **SQLAlchemy**, and **MySQL** for managing products, categories, and books.
 
 ---
 
@@ -34,8 +34,9 @@ A clean, modular, and layered RESTful API built with **FastAPI**, **SQLAlchemy**
 ├── entity/             # SQLAlchemy ORM models
 ├── payload/            # Pydantic schemas (requests & responses)
 ├── database.py         # Database engine & session management
-├── main.py             # Application entry point
-├── requirements.txt    # Project dependencies
+├── main.py             # Application entry point (`uvicorn main:app`)
+├── pyproject.toml      # Project metadata + ruff config (deps mirror requirements.txt)
+├── requirements.txt    # Pinned dependencies (install source of truth)
 └── .env.example        # Sample environment variables
 ```
 
@@ -45,7 +46,7 @@ A clean, modular, and layered RESTful API built with **FastAPI**, **SQLAlchemy**
 
 ### 1. Prerequisites
 
-- Python 3.10+
+- Python 3.13+
 - MySQL Server running
 
 ### 2. Installation
@@ -139,6 +140,11 @@ Once the server is running, explore the interactive documentation:
 | `POST` | `/api/v1/products` | Create a product |
 | `PUT` | `/api/v1/products/{id}` | Update a product |
 | `DELETE` | `/api/v1/products/{id}` | Delete a product |
+| `GET` | `/api/v1/books` | List books (with pagination) |
+| `GET` | `/api/v1/books/{id}` | Get book details |
+| `POST` | `/api/v1/books` | Create a book |
+| `PUT` | `/api/v1/books/{id}` | Update a book |
+| `DELETE` | `/api/v1/books/{id}` | Delete a book |
 
 ---
 

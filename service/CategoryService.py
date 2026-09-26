@@ -8,8 +8,8 @@ class CategoryService:
     def __init__(self, db):
         self.repository = CategoryRepository(db)
 
-    def get_all(self, skip: int = 0, limit: int = 100):
-        return self.repository.get_all(skip=skip, limit=limit)
+    def get_all(self, offset: int = 0, limit: int = 100):
+        return self.repository.get_all(offset=offset, limit=limit)
 
     def get_by_id(self, category_id: int):
         category = self.repository.get_by_id(category_id)

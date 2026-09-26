@@ -10,12 +10,12 @@ router = APIRouter(prefix="/api/v1/categories", tags=["categories"])
 
 @router.get("", response_model=list[CategoryResponse])
 def get_categories(
-    skip: int = Query(0, ge=0),
+    offset: int = Query(0, ge=0),
     limit: int = Query(100, ge=1, le=100),
     db: Session = Depends(get_db),
 ):
     service = CategoryService(db)
-    return service.get_all(skip=skip, limit=limit)
+    return service.get_all(offset=offset, limit=limit)
 
 
 @router.get("/{category_id}", response_model=CategoryResponse)
@@ -31,9 +31,7 @@ def create_category(payload: CategoryCreate, db: Session = Depends(get_db)):
 
 
 @router.put("/{category_id}", response_model=CategoryResponse)
-def update_category(
-    category_id: int, payload: CategoryUpdate, db: Session = Depends(get_db)
-):
+def update_category(category_id: int, payload: CategoryUpdate, db: Session = Depends(get_db)):
     service = CategoryService(db)
     return service.update(category_id, payload)
 
