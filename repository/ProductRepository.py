@@ -1,21 +1,22 @@
-from sqlalchemy import select, func
+from sqlalchemy import func, select
 from sqlalchemy.orm import Session
+
 from entity.ProductEntity import Product
 from payload.ProductPayload import ProductRequest
 
-class ProductRepository:
 
+class ProductRepository:
     def __init__(self, db: Session):
         self.db = db
 
-    def get_all(self, offset: int=0, limit: int=100):
+    def get_all(self, offset: int = 0, limit: int = 100):
         query = select(Product).order_by(Product.id).offset(offset).limit(limit)
         return self.db.execute(query).scalars().all()
 
     def get_by_id(self, id: int):
         return self.db.get(Product, id)
 
-    def get_by_name(self, name: str, exclude_id: int | None=None):
+    def get_by_name(self, name: str, exclude_id: int | None = None):
         query = select(Product).where(func.lower(Product.name) == name.lower())
         if exclude_id is not None:
             query = query.where(Product.id != exclude_id)
@@ -23,7 +24,7 @@ class ProductRepository:
 
     def create(self, request: ProductRequest):
         data = request.model_dump()
-        data['name'] = data['name'].strip()
+        data["name"] = data["name"].strip()
         product = Product(**data)
         self.db.add(product)
         self.db.commit()
@@ -35,9 +36,9 @@ class ProductRepository:
         if product is None:
             return None
         product.name = request.name.strip()
-        product.description = request.model_dump()['description']
-        product.price = request.model_dump()['price']
-        product.stock = request.model_dump()['stock']
+        product.description = request.model_dump()["description"]
+        product.price = request.model_dump()["price"]
+        product.stock = request.model_dump()["stock"]
         self.db.commit()
         self.db.refresh(product)
         return product
