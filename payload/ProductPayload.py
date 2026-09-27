@@ -8,7 +8,7 @@ class ProductRequest(BaseModel):
     name: str = Field(..., min_length=1, max_length=255)
     description: str | None = Field(default=None)
     price: Decimal = Field(..., gt=0, max_digits=10, decimal_places=2)
-    stock: int = Field(..., ge=0)
+    stock: int = Field(..., gt=0)
 
     model_config = ConfigDict(str_strip_whitespace=True)
 

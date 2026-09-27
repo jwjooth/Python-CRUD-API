@@ -14,7 +14,9 @@ dependencies = [
     "pymysql==1.2.3",
     "pydantic-settings==2.15.0",
     "python-dotenv==1.2.3",
-    "httpx==0.28.1",
+    "httpcore2==2.13.1",
+    "httpx2==2.13.1",
+    "truststore==0.10.4",
     "pytest==9.1.1",
     "ruff==0.16.9",
 ]

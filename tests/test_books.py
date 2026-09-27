@@ -71,11 +71,7 @@ def test_book_not_found(client: TestClient):
 
 
 def test_book_validation(client: TestClient, category_id: int):
-    # Negative price rejected by Pydantic (422)
-    response = client.post("/api/v1/books", json=_book_payload(category_id, price="-1.00"))
-    assert response.status_code == 422, response.text
-
-    # Negative stock rejected by Pydantic (422)
+    # Book has no price field; negative stock rejected by Pydantic (422)
     response = client.post("/api/v1/books", json=_book_payload(category_id, stock=-1))
     assert response.status_code == 422, response.text
 
