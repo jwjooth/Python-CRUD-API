@@ -38,7 +38,6 @@ class BookRepository:
         book.category_id = data["category_id"]
         book.title = data["title"]
         book.author = data["author"]
-        book.price = data["price"]
         book.stock = data["stock"]
         self.db.commit()
         self.db.refresh(book)
