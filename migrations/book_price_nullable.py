@@ -34,7 +34,8 @@ def upgrade(engine: Engine):
                         stock INTEGER NOT NULL,
                         price DECIMAL(10,2),
                         created_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
-                        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP
+                        updated_at DATETIME NOT NULL DEFAULT CURRENT_TIMESTAMP,
+                        FOREIGN KEY (category_id) REFERENCES categories(id)
                     )
                 """)
                 )
@@ -48,6 +49,9 @@ def upgrade(engine: Engine):
                 )
                 connection.execute(text("DROP TABLE books"))
                 connection.execute(text("ALTER TABLE books_new RENAME TO books"))
+                connection.execute(
+                    text("CREATE UNIQUE INDEX uq_book_title_normalized ON books (lower(title))")
+                )
             else:
                 connection.execute(text("ALTER TABLE books ALTER COLUMN price DROP NOT NULL"))
 
