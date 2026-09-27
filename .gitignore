@@ -1,0 +1,10 @@
+.env
+__pycache__/
+config/__pycache__/
+controller/__pycache__/
+entity/__pycache__/
+payload/__pycache__/
+repository/__pycache__/
+service/__pycache__/
+tests/__pycache__/
+utils/__pycache__/
