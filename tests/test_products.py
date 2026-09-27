@@ -42,16 +42,18 @@ def test_product_stock_validation(client: TestClient):
     response = client.post("/api/v1/products", json=_product_payload(stock=-1))
     assert response.status_code == 422, response.text
 
+    # Zero stock is rejected (must be > 0)
     response = client.post("/api/v1/products", json=_product_payload(stock=0))
+    assert response.status_code == 422, response.text
+
+    response = client.post("/api/v1/products", json=_product_payload(stock=5))
     assert response.status_code == 201, response.text
-    assert response.json()["stock"] == 0
     product_id = response.json()["id"]
 
     response = client.put(f"/api/v1/products/{product_id}", json=_product_payload(stock=5))
     assert response.status_code == 200, response.text
     response = client.put(f"/api/v1/products/{product_id}", json=_product_payload(stock=0))
-    assert response.status_code == 200, response.text
-    assert response.json()["stock"] == 0
+    assert response.status_code == 422, response.text
     response = client.put(f"/api/v1/products/{product_id}", json=_product_payload(stock=-1))
     assert response.status_code == 422, response.text
 
