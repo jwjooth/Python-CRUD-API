@@ -1,7 +1,6 @@
-from fastapi import HTTPException, status
-
 from payload.ProductPayload import ProductRequest
 from repository.ProductRepository import ProductRepository
+from utils import conflict, not_found, require_positive, require_string
 
 
 class ProductService:
@@ -14,89 +13,30 @@ class ProductService:
     def get_by_id(self, id: int):
         product = self.repository.get_by_id(id)
         if product is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Product with id {id} was not found.",
-            )
+            not_found("Product", id)
         return product
 
     def create(self, request: ProductRequest):
-        if not request.name.strip():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Product name is required.",
-            )
-        if request.price is None:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Product price is required.",
-            )
-        if request.price <= 0:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Product price is must be greater than zero.",
-            )
-        if request.stock is None:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Product stock is required.",
-            )
-        if request.stock < 0:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Product stock must be zero or greater.",
-            )
+        require_string(request.name, "Product name")
+        require_positive(request.price, "Product price")
+        require_positive(request.stock, "Product stock")
         if self.repository.get_by_name(request.name.strip()):
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"Product with name {request.name.strip()} already exists.",
-            )
+            conflict(f"Product with name {request.name.strip()} already exists.")
         return self.repository.create(request)
 
     def update(self, id: int, request: ProductRequest):
         self.get_by_id(id)
-        if not request.name.strip():
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Product name is required.",
-            )
-        if request.price is None:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Product price is required.",
-            )
-        if request.price <= 0:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Product price is must be greater than zero.",
-            )
-        if request.stock is None:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Product stock is required.",
-            )
-        if request.stock < 0:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail="Product stock must be zero or greater.",
-            )
+        require_string(request.name, "Product name")
+        require_positive(request.price, "Product price")
+        require_positive(request.stock, "Product stock")
         if self.repository.get_by_name(request.name.strip(), id):
-            raise HTTPException(
-                status_code=status.HTTP_409_CONFLICT,
-                detail=f"Product with name {request.name.strip()} already exists.",
-            )
+            conflict(f"Product with name {request.name.strip()} already exists.")
         product = self.repository.update(request, id)
         if product is None:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Product with id {id} was not found.",
-            )
+            not_found("Product", id)
         return product
 
     def delete(self, id: int):
         deleted = self.repository.delete(id)
         if not deleted:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail=f"Product with id {id} was not found.",
-            )
+            not_found("Product", id)
