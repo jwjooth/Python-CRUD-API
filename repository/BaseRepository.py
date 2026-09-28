@@ -67,11 +67,11 @@ class BaseRepository[ModelT: Base]:
         try:
             self.db.commit()
         except IntegrityError as exc:
-            violation = translate_integrity_error(exc, self.unique_index or None)
-            if violation is None:
-                raise
             self.db.rollback()
             # expire_on_commit=False keeps the identity map populated, so a failed
             # write must be expired explicitly to avoid leaking uncommitted values.
             self.db.expire_all()
+            violation = translate_integrity_error(exc, self.unique_index or None)
+            if violation is None:
+                raise
             raise violation from exc
