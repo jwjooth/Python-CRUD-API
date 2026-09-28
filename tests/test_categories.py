@@ -96,6 +96,19 @@ def test_category_conflict_rolls_back_session(operation):
     engine.dispose()
 
 
+def test_category_unmapped_integrity_error_rolls_back_session():
+    engine = create_engine("sqlite://")
+    Category.__table__.create(engine)
+    with Session(engine, expire_on_commit=False) as session:
+        repository = CategoryRepository(session)
+        category = repository.create("History")
+        with pytest.raises(IntegrityError, match="NOT NULL constraint failed"):
+            repository.save(category, name=None)
+        assert repository.get_by_id(category.id).name == "History"
+        assert repository.create("Biography").name == "Biography"
+    engine.dispose()
+
+
 @pytest.mark.parametrize("operation", ["create", "update"])
 @pytest.mark.parametrize(
     "code, message, violation",
@@ -127,11 +140,9 @@ def test_category_mysql_integrity_errors(operation, code, message, violation):
             repository.create("Fantasy")
         else:
             repository.update(Category(name="History"), "FANTASY")
+    session.rollback.assert_called_once_with()
+    session.expire_all.assert_called_once_with()
     if violation is None:
         assert caught.value is error
-        session.rollback.assert_not_called()
-    else:
-        session.rollback.assert_called_once_with()
-        session.expire_all.assert_called_once_with()
     if violation == "duplicate":
         assert caught.value.index_name == "uq_category_name_normalized"
