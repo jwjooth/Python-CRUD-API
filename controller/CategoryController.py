@@ -1,43 +1,59 @@
-from fastapi import APIRouter, Depends, Query, Response, status
+"""Category HTTP endpoints. Thin: bind payloads, delegate, declare responses."""
+
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Path, Query, Response, status
 from sqlalchemy.orm import Session
 
 from database import get_db
+from payload.BasePayload import PaginationPayload
 from payload.CategoryPayload import CategoryCreate, CategoryResponse, CategoryUpdate
 from service.CategoryService import CategoryService
 
 router = APIRouter(prefix="/api/v1/categories", tags=["categories"])
 
-
-@router.get("", response_model=list[CategoryResponse])
-def get_categories(
-    offset: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=100),
-    db: Session = Depends(get_db),
-):
-    service = CategoryService(db)
-    return service.get_all(offset=offset, limit=limit)
+DbSession = Annotated[Session, Depends(get_db)]
+PageParams = Annotated[PaginationPayload, Query()]
+CategoryId = Annotated[int, Path(ge=1, description="Category id.")]
 
 
-@router.get("/{category_id}", response_model=CategoryResponse)
-def get_category(category_id: int, db: Session = Depends(get_db)):
-    service = CategoryService(db)
-    return service.get_by_id(category_id)
+@router.get("", response_model=list[CategoryResponse], summary="List categories")
+def get_categories(pagination: PageParams, db: DbSession) -> list[CategoryResponse]:
+    return CategoryService(db).get_all(offset=pagination.offset, limit=pagination.limit)
 
 
-@router.post("", response_model=CategoryResponse, status_code=status.HTTP_201_CREATED)
-def create_category(payload: CategoryCreate, db: Session = Depends(get_db)):
-    service = CategoryService(db)
-    return service.create(payload)
+@router.get("/{category_id}", response_model=CategoryResponse, summary="Get a category")
+def get_category(category_id: CategoryId, db: DbSession) -> CategoryResponse:
+    return CategoryService(db).get_by_id(category_id)
 
 
-@router.put("/{category_id}", response_model=CategoryResponse)
-def update_category(category_id: int, payload: CategoryUpdate, db: Session = Depends(get_db)):
-    service = CategoryService(db)
-    return service.update(category_id, payload)
+@router.post(
+    "",
+    response_model=CategoryResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a category",
+)
+def create_category(payload: CategoryCreate, db: DbSession) -> CategoryResponse:
+    return CategoryService(db).create(payload)
 
 
-@router.delete("/{category_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_category(category_id: int, db: Session = Depends(get_db)):
-    service = CategoryService(db)
-    service.delete(category_id)
+@router.put(
+    "/{category_id}",
+    response_model=CategoryResponse,
+    summary="Replace a category",
+)
+def update_category(
+    category_id: CategoryId, payload: CategoryUpdate, db: DbSession
+) -> CategoryResponse:
+    return CategoryService(db).update(category_id, payload)
+
+
+@router.delete(
+    "/{category_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+    summary="Delete a category",
+)
+def delete_category(category_id: CategoryId, db: DbSession) -> Response:
+    CategoryService(db).delete(category_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -7,9 +7,11 @@ A clean, modular, and layered RESTful API built with **FastAPI**, **SQLAlchemy**
 ## 🚀 Features
 
 - **Layered Architecture**: Separation of concerns across Controller, Service, Repository, Entity, and Payload layers.
-- **Full CRUD**: Manage Categories and Products with input validation.
+- **Full CRUD**: Manage Categories, Products and Books with strict input validation.
+- **Strict Payloads**: Unknown body fields, out-of-range values and unknown query parameters are rejected with `422` instead of being silently ignored.
+- **Race-Safe Uniqueness**: Case-insensitive unique indexes at the database level return `409` even under concurrent writers.
 - **Automatic OpenAPI Documentation**: Swagger UI and ReDoc out of the box.
-- **Relational ORM**: Database operations powered by SQLAlchemy 2.0 with PyMySQL.
+- **Relational ORM**: Database operations powered by SQLAlchemy 2.0 with PyMySQL, with a pooled engine and GZip-compressed responses.
 - **Config Management**: Environment variable validation with Pydantic Settings.
 
 ---
@@ -29,16 +31,28 @@ A clean, modular, and layered RESTful API built with **FastAPI**, **SQLAlchemy**
 ```text
 ├── config/             # Application configuration & environment settings
 ├── controller/         # API routes & request handling
-├── service/            # Business logic layer
+├── service/            # Business logic layer (payload in, payload out)
 ├── repository/         # Database queries & persistence layer
 ├── entity/             # SQLAlchemy ORM models
-├── payload/            # Pydantic schemas (requests & responses)
+├── payload/            # Pydantic schemas (create, update, response, pagination)
+├── utils/              # Shared HTTP mappers, domain errors, integrity translation
+├── migrations/         # One-off database migration scripts
+├── tests/              # Pytest suite (SQLite-backed TestClient)
 ├── database.py         # Database engine & session management
 ├── main.py             # Application entry point (`uvicorn main:app`)
 ├── pyproject.toml      # Project metadata + ruff config (deps mirror requirements.txt)
 ├── requirements.txt    # Pinned dependencies (install source of truth)
 └── .env.example        # Sample environment variables
 ```
+
+### Request/response rules
+
+- Bodies are strict: unknown fields are rejected with `422`, names and titles are
+  trimmed, and every field carries its own bounds (`gt`, `ge`, `max_digits`).
+- List endpoints share `offset`/`limit` (`offset >= 0`, `1 <= limit <= 100`);
+  unknown query parameters are rejected with `422`.
+- Status codes: `201` created, `204` deleted (empty body), `400` unknown category
+  reference, `404` missing row, `409` duplicate name/title, `422` validation.
 
 ---
 
@@ -98,6 +112,19 @@ DB_PASSWORD=yourpassword
 DB_NAME=products_db
 ```
 
+Optional tuning (defaults shown):
+
+```env
+SQLALCHEMY_ECHO=false
+DB_POOL_SIZE=10
+DB_MAX_OVERFLOW=20
+DB_POOL_RECYCLE=1800
+DB_POOL_TIMEOUT=30
+API_TITLE=Products API
+API_VERSION=1.0.0
+GZIP_MINIMUM_SIZE=500
+```
+
 Before starting the application, create the configured database in MySQL:
 
 ```sql
@@ -152,20 +179,32 @@ Once the server is running, explore the interactive documentation:
 | :--- | :--- | :--- |
 | `GET` | `/` | Health check / Welcome message |
 | `GET` | `/api/v1/categories` | List categories (with pagination) |
-| `GET` | `/api/v1/categories/{id}` | Get category details |
+| `GET` | `/api/v1/categories/{category_id}` | Get category details |
 | `POST` | `/api/v1/categories` | Create a category |
-| `PUT` | `/api/v1/categories/{id}` | Update a category |
-| `DELETE` | `/api/v1/categories/{id}` | Delete a category |
+| `PUT` | `/api/v1/categories/{category_id}` | Update a category |
+| `DELETE` | `/api/v1/categories/{category_id}` | Delete a category |
 | `GET` | `/api/v1/products` | List products (with pagination) |
-| `GET` | `/api/v1/products/{id}` | Get product details |
+| `GET` | `/api/v1/products/{product_id}` | Get product details |
 | `POST` | `/api/v1/products` | Create a product |
-| `PUT` | `/api/v1/products/{id}` | Update a product |
-| `DELETE` | `/api/v1/products/{id}` | Delete a product |
+| `PUT` | `/api/v1/products/{product_id}` | Update a product |
+| `DELETE` | `/api/v1/products/{product_id}` | Delete a product |
 | `GET` | `/api/v1/books` | List books (with pagination) |
-| `GET` | `/api/v1/books/{id}` | Get book details |
+| `GET` | `/api/v1/books/{book_id}` | Get book details |
 | `POST` | `/api/v1/books` | Create a book |
-| `PUT` | `/api/v1/books/{id}` | Update a book |
-| `DELETE` | `/api/v1/books/{id}` | Delete a book |
+| `PUT` | `/api/v1/books/{book_id}` | Update a book |
+| `DELETE` | `/api/v1/books/{book_id}` | Delete a book |
+
+---
+
+## 🧪 Tests & Lint
+
+The suite runs against an in-memory SQLite database, so no MySQL server is required:
+
+```bash
+pytest
+ruff check .
+ruff format --check .
+```
 
 ---
 

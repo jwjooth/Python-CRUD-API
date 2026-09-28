@@ -39,7 +39,13 @@ test_engine = create_engine(
     connect_args={"check_same_thread": False},
     poolclass=StaticPool,
 )
-TestingSessionLocal = sessionmaker(autocommit=False, autoflush=False, bind=test_engine)
+# Mirrors the production session factory semantics (see database.py).
+TestingSessionLocal = sessionmaker(
+    bind=test_engine,
+    autocommit=False,
+    autoflush=False,
+    expire_on_commit=False,
+)
 
 
 @asynccontextmanager
@@ -54,17 +60,24 @@ app.router.lifespan_context = _noop_lifespan
 
 
 @pytest.fixture()
+def db_session():
+    """Session bound to the in-memory database, for service/repository tests."""
+    Base.metadata.drop_all(bind=test_engine)
+    Base.metadata.create_all(bind=test_engine)
+    with TestingSessionLocal() as session:
+        yield session
+
+
+@pytest.fixture()
 def client():
     """Fresh TestClient with empty tables for every test."""
     Base.metadata.drop_all(bind=test_engine)
     Base.metadata.create_all(bind=test_engine)
 
     def override_get_db():
-        db = TestingSessionLocal()
-        try:
-            yield db
-        finally:
-            db.close()
+        # One session per request, mirroring database.get_db in production.
+        with TestingSessionLocal() as session:
+            yield session
 
     app.dependency_overrides[get_db] = override_get_db
     with TestClient(app) as test_client:
@@ -79,12 +92,22 @@ def category_id(client: TestClient) -> int:
     return response.json()["id"]
 
 
+def _product_payload(name: str = "Keyboard", **overrides):
+    payload = {
+        "name": name,
+        "description": "Mechanical keyboard",
+        "price": "49.99",
+        "stock": 10,
+    }
+    payload.update(overrides)
+    return payload
+
+
 def _book_payload(category_id: int, title: str = "Dune", **overrides):
     payload = {
         "category_id": category_id,
         "title": title,
         "author": "Frank Herbert",
-        "price": "19.99",
         "stock": 10,
     }
     payload.update(overrides)

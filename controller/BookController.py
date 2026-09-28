@@ -1,43 +1,57 @@
-from fastapi import APIRouter, Depends, Query, Response, status
+"""Book HTTP endpoints. Thin: bind payloads, delegate, declare responses."""
+
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Path, Query, Response, status
 from sqlalchemy.orm import Session
 
 from database import get_db
-from payload.BookPayload import BookRequest, BookResponse
+from payload.BasePayload import PaginationPayload
+from payload.BookPayload import BookCreate, BookResponse, BookUpdate
 from service.BookService import BookService
 
 router = APIRouter(prefix="/api/v1/books", tags=["books"])
 
-
-@router.get("", response_model=list[BookResponse])
-def get_books(
-    offset: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=100),
-    db: Session = Depends(get_db),
-):
-    service = BookService(db)
-    return service.get_all(offset, limit)
+DbSession = Annotated[Session, Depends(get_db)]
+PageParams = Annotated[PaginationPayload, Query()]
+BookId = Annotated[int, Path(ge=1, description="Book id.")]
 
 
-@router.get("/{book_id}", response_model=BookResponse)
-def get_book(book_id: int, db: Session = Depends(get_db)):
-    service = BookService(db)
-    return service.get_by_id(book_id)
+@router.get("", response_model=list[BookResponse], summary="List books")
+def get_books(pagination: PageParams, db: DbSession) -> list[BookResponse]:
+    return BookService(db).get_all(offset=pagination.offset, limit=pagination.limit)
 
 
-@router.post("", response_model=BookResponse, status_code=status.HTTP_201_CREATED)
-def create_book(request: BookRequest, db: Session = Depends(get_db)):
-    service = BookService(db)
-    return service.create(request)
+@router.get("/{book_id}", response_model=BookResponse, summary="Get a book")
+def get_book(book_id: BookId, db: DbSession) -> BookResponse:
+    return BookService(db).get_by_id(book_id)
 
 
-@router.put("/{book_id}", response_model=BookResponse)
-def update_book(book_id: int, request: BookRequest, db: Session = Depends(get_db)):
-    service = BookService(db)
-    return service.update(book_id, request)
+@router.post(
+    "",
+    response_model=BookResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a book",
+)
+def create_book(payload: BookCreate, db: DbSession) -> BookResponse:
+    return BookService(db).create(payload)
 
 
-@router.delete("/{book_id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete_book(book_id: int, db: Session = Depends(get_db)):
-    service = BookService(db)
-    service.delete(book_id)
+@router.put(
+    "/{book_id}",
+    response_model=BookResponse,
+    summary="Replace a book",
+)
+def update_book(book_id: BookId, payload: BookUpdate, db: DbSession) -> BookResponse:
+    return BookService(db).update(book_id, payload)
+
+
+@router.delete(
+    "/{book_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+    summary="Delete a book",
+)
+def delete_book(book_id: BookId, db: DbSession) -> Response:
+    BookService(db).delete(book_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)

@@ -1,19 +1,38 @@
+"""Book request/response payloads."""
+
 from datetime import datetime
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import Field
+
+from payload.BasePayload import RequestPayload, ResponsePayload
 
 
-class BookRequest(BaseModel):
-    category_id: int = Field(..., gt=0)
-    title: str = Field(..., min_length=1, max_length=255)
-    author: str = Field(..., min_length=1, max_length=255)
-    stock: int = Field(..., ge=0)
+class BookFields(RequestPayload):
+    """Fields shared by book creation and update."""
 
-    model_config = ConfigDict(str_strip_whitespace=True)
+    category_id: int = Field(..., gt=0, description="Existing category id.")
+    title: str = Field(
+        ...,
+        min_length=1,
+        max_length=255,
+        description="Unique title, compared case-insensitively.",
+        examples=["Dune"],
+    )
+    author: str = Field(..., min_length=1, max_length=255, examples=["Frank Herbert"])
+    stock: int = Field(..., ge=0, description="Copies currently in stock.")
 
 
-class BookResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+class BookCreate(BookFields):
+    """Body of `POST /api/v1/books`."""
+
+
+class BookUpdate(BookFields):
+    """Body of `PUT /api/v1/books/{book_id}`."""
+
+
+class BookResponse(ResponsePayload):
+    """Representation of a book."""
+
     id: int
     category_id: int
     title: str

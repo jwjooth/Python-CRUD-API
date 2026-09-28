@@ -1,20 +1,51 @@
+"""Product request/response payloads."""
+
 from datetime import datetime
 from decimal import Decimal
 
-from pydantic import BaseModel, ConfigDict, Field
+from pydantic import Field
+
+from payload.BasePayload import RequestPayload, ResponsePayload
 
 
-class ProductRequest(BaseModel):
-    name: str = Field(..., min_length=1, max_length=255)
-    description: str | None = Field(default=None)
-    price: Decimal = Field(..., gt=0, max_digits=10, decimal_places=2)
-    stock: int = Field(..., gt=0)
+class ProductFields(RequestPayload):
+    """Fields shared by product creation and update."""
 
-    model_config = ConfigDict(str_strip_whitespace=True)
+    name: str = Field(
+        ...,
+        min_length=1,
+        max_length=255,
+        description="Unique display name, compared case-insensitively.",
+        examples=["Mechanical Keyboard"],
+    )
+    description: str | None = Field(
+        default=None,
+        max_length=2000,
+        description="Optional free-form description.",
+        examples=["Mechanical keyboard"],
+    )
+    price: Decimal = Field(
+        ...,
+        gt=0,
+        max_digits=10,
+        decimal_places=2,
+        description="Unit price with at most two decimal places.",
+        examples=["49.99"],
+    )
+    stock: int = Field(..., gt=0, description="Units currently in stock.")
 
 
-class ProductResponse(BaseModel):
-    model_config = ConfigDict(from_attributes=True)
+class ProductCreate(ProductFields):
+    """Body of `POST /api/v1/products`."""
+
+
+class ProductUpdate(ProductFields):
+    """Body of `PUT /api/v1/products/{product_id}`."""
+
+
+class ProductResponse(ResponsePayload):
+    """Representation of a product."""
+
     id: int
     name: str
     description: str | None

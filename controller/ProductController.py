@@ -1,43 +1,57 @@
-from fastapi import APIRouter, Depends, Query, Response, status
+"""Product HTTP endpoints. Thin: bind payloads, delegate, declare responses."""
+
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Path, Query, Response, status
 from sqlalchemy.orm import Session
 
 from database import get_db
-from payload.ProductPayload import ProductRequest, ProductResponse
+from payload.BasePayload import PaginationPayload
+from payload.ProductPayload import ProductCreate, ProductResponse, ProductUpdate
 from service.ProductService import ProductService
 
 router = APIRouter(prefix="/api/v1/products", tags=["products"])
 
-
-@router.get("", response_model=list[ProductResponse])
-def get_all(
-    offset: int = Query(0, ge=0),
-    limit: int = Query(100, ge=1, le=100),
-    db: Session = Depends(get_db),
-):
-    service = ProductService(db)
-    return service.get_all(offset, limit)
+DbSession = Annotated[Session, Depends(get_db)]
+PageParams = Annotated[PaginationPayload, Query()]
+ProductId = Annotated[int, Path(ge=1, description="Product id.")]
 
 
-@router.get("/{id}", response_model=ProductResponse)
-def get_by_id(id: int, db: Session = Depends(get_db)):
-    service = ProductService(db)
-    return service.get_by_id(id)
+@router.get("", response_model=list[ProductResponse], summary="List products")
+def get_products(pagination: PageParams, db: DbSession) -> list[ProductResponse]:
+    return ProductService(db).get_all(offset=pagination.offset, limit=pagination.limit)
 
 
-@router.post("", response_model=ProductResponse, status_code=status.HTTP_201_CREATED)
-def create(request: ProductRequest, db: Session = Depends(get_db)):
-    service = ProductService(db)
-    return service.create(request)
+@router.get("/{product_id}", response_model=ProductResponse, summary="Get a product")
+def get_product(product_id: ProductId, db: DbSession) -> ProductResponse:
+    return ProductService(db).get_by_id(product_id)
 
 
-@router.put("/{id}", response_model=ProductResponse)
-def update(id: int, request: ProductRequest, db: Session = Depends(get_db)):
-    service = ProductService(db)
-    return service.update(id, request)
+@router.post(
+    "",
+    response_model=ProductResponse,
+    status_code=status.HTTP_201_CREATED,
+    summary="Create a product",
+)
+def create_product(payload: ProductCreate, db: DbSession) -> ProductResponse:
+    return ProductService(db).create(payload)
 
 
-@router.delete("/{id}", status_code=status.HTTP_204_NO_CONTENT)
-def delete(id: int, db: Session = Depends(get_db)):
-    service = ProductService(db)
-    service.delete(id)
+@router.put(
+    "/{product_id}",
+    response_model=ProductResponse,
+    summary="Replace a product",
+)
+def update_product(product_id: ProductId, payload: ProductUpdate, db: DbSession) -> ProductResponse:
+    return ProductService(db).update(product_id, payload)
+
+
+@router.delete(
+    "/{product_id}",
+    status_code=status.HTTP_204_NO_CONTENT,
+    response_class=Response,
+    summary="Delete a product",
+)
+def delete_product(product_id: ProductId, db: DbSession) -> Response:
+    ProductService(db).delete(product_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
