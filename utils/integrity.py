@@ -22,6 +22,7 @@ _SQLITE_FOREIGN_KEY = "FOREIGN KEY constraint failed"
 
 
 def _mysql_error_code(error: MySQLIntegrityError) -> int | None:
+    """Return the integer driver error code, or None if it is unavailable."""
     args = error.args
     if args and isinstance(args[0], int):
         return args[0]
@@ -29,6 +30,7 @@ def _mysql_error_code(error: MySQLIntegrityError) -> int | None:
 
 
 def _mysql_message(error: MySQLIntegrityError) -> str:
+    """Return the driver message, falling back to the full error string."""
     return str(error.args[1]) if len(error.args) > 1 else str(error)
 
 

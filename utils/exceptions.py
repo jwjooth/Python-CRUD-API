@@ -16,6 +16,7 @@ class DuplicateValueError(DomainError):
     """A unique index rejected a write (duplicate name/title)."""
 
     def __init__(self, index_name: str) -> None:
+        """Record the violated unique index and include its name in the error message."""
         super().__init__(f"value violates unique index '{index_name}'")
         self.index_name = index_name
 
@@ -24,4 +25,5 @@ class RelatedRecordMissingError(DomainError):
     """A foreign key rejected a write because the referenced row does not exist."""
 
     def __init__(self, message: str = "referenced record does not exist") -> None:
+        """Initialize the error with a missing-reference message."""
         super().__init__(message)

@@ -26,6 +26,7 @@ class BaseRepository[ModelT: Base]:
     server_generated_fields: ClassVar[tuple[str, ...]] = ("created_at", "updated_at")
 
     def __init__(self, db: Session) -> None:
+        """Bind repository operations to the supplied database session."""
         self.db = db
 
     def get_all(self, *, offset: int = 0, limit: int = 100) -> Sequence[ModelT]:
@@ -59,11 +60,16 @@ class BaseRepository[ModelT: Base]:
         self._commit()
 
     def _load_server_generated(self, entity: ModelT) -> None:
+        """Refresh only the configured server-generated fields on a tracked row."""
         # A targeted refresh fetches only the server-managed columns; the values
         # written by the request are already present in memory.
         self.db.refresh(entity, list(self.server_generated_fields))
 
     def _commit(self) -> None:
+        """Commit the session and translate recognized integrity violations.
+
+        Roll back and expire tracked state after any integrity error, then raise
+        a mapped domain error or re-raise the original error if it is unmapped."""
         try:
             self.db.commit()
         except IntegrityError as exc:

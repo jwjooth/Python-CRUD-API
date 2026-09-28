@@ -13,10 +13,12 @@ from service.ProductService import ProductService
 
 
 def _category(session: Session, name: str = "Fiction") -> int:
+    """Create a category through the service and return its ID for book fixtures."""
     return CategoryService(session).create(CategoryCreate(name=name)).id
 
 
 def test_category_service_returns_response_payloads(db_session: Session):
+    """Verify category operations return response payloads with normalized fields."""
     service = CategoryService(db_session)
     created = service.create(CategoryCreate(name="  Fantasy  "))
 
@@ -32,6 +34,7 @@ def test_category_service_returns_response_payloads(db_session: Session):
 
 
 def test_product_service_maps_duplicates_to_409(db_session: Session):
+    """Verify duplicate product creates and updates become HTTP 409 conflicts."""
     service = ProductService(db_session)
     payload = ProductCreate(name="Keyboard", price="49.99", stock=3)
     assert isinstance(service.create(payload), ProductResponse)
@@ -50,6 +53,7 @@ def test_product_service_maps_duplicates_to_409(db_session: Session):
 
 
 def test_product_service_missing_row_is_404(db_session: Session):
+    """Verify product reads and deletes raise HTTP 404 for an absent row."""
     service = ProductService(db_session)
     with pytest.raises(HTTPException) as missing:
         service.get_by_id(4242)
@@ -60,6 +64,7 @@ def test_product_service_missing_row_is_404(db_session: Session):
 
 
 def test_book_service_validates_category_reference(db_session: Session):
+    """Verify creating a book with a missing category raises HTTP 400."""
     service = BookService(db_session)
     payload = BookCreate(category_id=999, title="Dune", author="Frank Herbert", stock=10)
 
@@ -70,6 +75,7 @@ def test_book_service_validates_category_reference(db_session: Session):
 
 
 def test_book_service_round_trip(db_session: Session):
+    """Verify book payloads, updates, duplicate conflicts, and deletion through the service."""
     service = BookService(db_session)
     category_id = _category(db_session)
 
