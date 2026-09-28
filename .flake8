@@ -1,0 +1,11 @@
+[flake8]
+# Keep CI (flake8) aligned with the local ruff configuration in pyproject.toml.
+max-line-length = 100
+extend-ignore = E203, E704, W503
+exclude =
+    .git,
+    .venv,
+    __pycache__,
+    .ruff_cache,
+    .pytest_cache,
+    src

@@ -51,6 +51,6 @@ def upgrade(engine: Engine):
 
 
 if __name__ == "__main__":
-    from database import engine
+    from migrations import run
 
-    upgrade(engine)
+    run(upgrade)

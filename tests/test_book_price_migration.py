@@ -58,9 +58,12 @@ def test_sqlite_rebuild_preserves_book_constraints_and_data():
                 VALUES (1, 'Foundation', 'Isaac Asimov', 2)
             """)
         )
-        assert connection.execute(
-            text("SELECT price FROM books WHERE title = 'Foundation'")
-        ).scalar_one() is None
+        assert (
+            connection.execute(
+                text("SELECT price FROM books WHERE title = 'Foundation'")
+            ).scalar_one()
+            is None
+        )
 
     with pytest.raises(IntegrityError, match="FOREIGN KEY constraint failed"):
         with engine.begin() as connection:

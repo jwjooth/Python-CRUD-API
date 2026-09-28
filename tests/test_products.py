@@ -1,15 +1,6 @@
 from fastapi.testclient import TestClient
 
-
-def _product_payload(name: str = "Keyboard", **overrides):
-    payload = {
-        "name": name,
-        "description": "Mechanical keyboard",
-        "price": "49.99",
-        "stock": 10,
-    }
-    payload.update(overrides)
-    return payload
+from tests.conftest import _product_payload
 
 
 def test_product_crud_lifecycle(client: TestClient):
