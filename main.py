@@ -52,6 +52,7 @@ app.add_middleware(
 
 @app.get("/", response_model=HealthResponse, tags=["health"], summary="Health check")
 def read_root() -> HealthResponse:
+    """Return service availability and a welcome message using the configured API title."""
     return HealthResponse(status="ok", message=f"Welcome to the {settings.api_title}")
 
 

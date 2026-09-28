@@ -75,6 +75,7 @@ def client():
     Base.metadata.create_all(bind=test_engine)
 
     def override_get_db():
+        """Yield one SQLite session per request and close it after use."""
         # One session per request, mirroring database.get_db in production.
         with TestingSessionLocal() as session:
             yield session
@@ -93,6 +94,7 @@ def category_id(client: TestClient) -> int:
 
 
 def _product_payload(name: str = "Keyboard", **overrides):
+    """Build a valid product request body with optional field overrides."""
     payload = {
         "name": name,
         "description": "Mechanical keyboard",
@@ -104,6 +106,7 @@ def _product_payload(name: str = "Keyboard", **overrides):
 
 
 def _book_payload(category_id: int, title: str = "Dune", **overrides):
+    """Build a book request body for the supplied category with optional overrides."""
     payload = {
         "category_id": category_id,
         "title": title,

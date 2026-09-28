@@ -14,7 +14,9 @@ class BookRepository(BaseRepository[Book]):
     unique_index: ClassVar[str] = "uq_book_title_normalized"
 
     def create(self, payload: BookCreate) -> Book:
+        """Insert a book from the payload and load its server-generated fields."""
         return self.add(**payload.model_dump())
 
     def update(self, book: Book, payload: BookUpdate) -> Book:
+        """Persist payload fields on a tracked book and refresh server-generated fields."""
         return self.save(book, **payload.model_dump())

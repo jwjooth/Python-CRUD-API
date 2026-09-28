@@ -14,7 +14,9 @@ class ProductRepository(BaseRepository[Product]):
     unique_index: ClassVar[str] = "uq_product_name_normalized"
 
     def create(self, payload: ProductCreate) -> Product:
+        """Insert a product from the payload and load its server-generated fields."""
         return self.add(**payload.model_dump())
 
     def update(self, product: Product, payload: ProductUpdate) -> Product:
+        """Persist payload fields on a tracked product and refresh server-generated fields."""
         return self.save(product, **payload.model_dump())

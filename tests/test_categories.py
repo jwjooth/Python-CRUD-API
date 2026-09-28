@@ -56,6 +56,7 @@ def test_category_update_name_conflict(client: TestClient):
 
 
 def test_category_not_found(client: TestClient):
+    """Verify reads, updates, and deletes return HTTP 404 for a missing category."""
     assert client.get("/api/v1/categories/9999").status_code == 404
     assert client.put("/api/v1/categories/9999", json={"name": "Nope"}).status_code == 404
     assert client.delete("/api/v1/categories/9999").status_code == 404
@@ -79,6 +80,7 @@ def test_category_conflict_from_unique_index(client: TestClient, db_session, ope
 
 @pytest.mark.parametrize("operation", ["create", "update"])
 def test_category_conflict_rolls_back_session(operation):
+    """Verify duplicate writes restore stored values and leave the session usable."""
     engine = create_engine("sqlite://")
     Category.__table__.create(engine)
     with Session(engine, expire_on_commit=False) as session:
@@ -126,6 +128,7 @@ def test_category_unmapped_integrity_error_rolls_back_session():
     ],
 )
 def test_category_mysql_integrity_errors(operation, code, message, violation):
+    """Verify MySQL integrity errors are mapped and rolled back only when recognized."""
     session = Mock()
     error = IntegrityError("statement", {}, MySQLIntegrityError(code, message))
     session.commit.side_effect = error

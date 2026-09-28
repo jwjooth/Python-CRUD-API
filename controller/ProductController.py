@@ -19,11 +19,13 @@ ProductId = Annotated[int, Path(ge=1, description="Product id.")]
 
 @router.get("", response_model=list[ProductResponse], summary="List products")
 def get_products(pagination: PageParams, db: DbSession) -> list[ProductResponse]:
+    """Return a page of products ordered by ID."""
     return ProductService(db).get_all(offset=pagination.offset, limit=pagination.limit)
 
 
 @router.get("/{product_id}", response_model=ProductResponse, summary="Get a product")
 def get_product(product_id: ProductId, db: DbSession) -> ProductResponse:
+    """Return the product with the given ID, or raise HTTP 404."""
     return ProductService(db).get_by_id(product_id)
 
 
@@ -34,6 +36,7 @@ def get_product(product_id: ProductId, db: DbSession) -> ProductResponse:
     summary="Create a product",
 )
 def create_product(payload: ProductCreate, db: DbSession) -> ProductResponse:
+    """Create a product from the validated request and return its representation."""
     return ProductService(db).create(payload)
 
 
@@ -43,6 +46,7 @@ def create_product(payload: ProductCreate, db: DbSession) -> ProductResponse:
     summary="Replace a product",
 )
 def update_product(product_id: ProductId, payload: ProductUpdate, db: DbSession) -> ProductResponse:
+    """Replace the product fields from the validated request, or raise HTTP 404."""
     return ProductService(db).update(product_id, payload)
 
 
@@ -53,5 +57,6 @@ def update_product(product_id: ProductId, payload: ProductUpdate, db: DbSession)
     summary="Delete a product",
 )
 def delete_product(product_id: ProductId, db: DbSession) -> Response:
+    """Delete the product and return an empty HTTP 204 response, or raise HTTP 404."""
     ProductService(db).delete(product_id)
     return Response(status_code=status.HTTP_204_NO_CONTENT)
